@@ -12,8 +12,10 @@ import matplotlib.pyplot as plt
 from nicegui import ui, events
 
 from quanta_io.log_source import WPILogFileSource, read_wpilog_signals
-from quanta_analysis.swerve import SwerveOdometryVarianceAnalyzer
-from quanta_plot.variance import VarianceTimeSeriesPlot
+from quanta_analysis.pose_trajectory import PoseTrajectoryAnalyzer
+from quanta_plot.trajectory import CartesianTrajectoryPlot
+
+POSE_KEY = "RealOutputs/Robot/dt/Pose/estPose"
 
 
 @ui.page("/")
@@ -29,22 +31,18 @@ def index() -> None:
             tmp_path = pathlib.Path(f.name)
 
         try:
-            source = WPILogFileSource(str(tmp_path))
-            analyzer = SwerveOdometryVarianceAnalyzer(
-                "RealOutputs/Robot/dt/Pose/estPose",
-                "RealOutputs/Robot/dt/Pose/estPose/translation/x",
-                window=50,
-            )
-            result = analyzer.process(source)
+            log_map = read_wpilog_signals(str(tmp_path))
+            analyzer = PoseTrajectoryAnalyzer(POSE_KEY)
+            result = analyzer.process_signals(log_map)
 
             if not result.timestamps_us:
                 status_label.set_text(
-                    "No odometry data found. Check that keys 'Drive/OdometryX' "
-                    "and 'Drive/OdometryY' exist in the log."
+                    f"No pose data found for key '{POSE_KEY}'. "
+                    f"Available keys: {', '.join(list(log_map.field_names())[:10])}"
                 )
                 return
 
-            plot = VarianceTimeSeriesPlot()
+            plot = CartesianTrajectoryPlot()
             fig = plot.render(result)
 
             buf = io.BytesIO()
