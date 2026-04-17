@@ -5,9 +5,6 @@ import argparse
 import pathlib
 import tempfile
 
-import base64
-import io
-
 import matplotlib.pyplot as plt
 from nicegui import ui, events
 
@@ -32,8 +29,7 @@ def index() -> None:
 
         try:
             log_map = read_wpilog_signals(str(tmp_path))
-            analyzer = PoseTrajectoryAnalyzer(POSE_KEY)
-            result = analyzer.process_signals(log_map)
+            result = PoseTrajectoryAnalyzer(POSE_KEY).process_signals(log_map)
 
             if not result.timestamps_us:
                 status_label.set_text(
@@ -42,21 +38,27 @@ def index() -> None:
                 )
                 return
 
-            plot = CartesianTrajectoryPlot()
-            fig = plot.render(result)
+            x  = result.signals.get("x", [])
+            y  = result.signals.get("y", [])
+            vx = result.signals.get("vx", [])
+            vy = result.signals.get("vy", [])
 
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png", bbox_inches="tight")
-            buf.seek(0)
-            img_b64 = base64.b64encode(buf.read()).decode()
             with chart_container:
-                ui.image(f"data:image/png;base64,{img_b64}").classes("w-full")
+                mp = ui.matplotlib(figsize=(8, 6))
+                with mp.figure as fig:
+                    ax = fig.gca()
+                    ax.plot(x, y, "-o", markersize=3, label="path")
+                    if x:
+                        ax.quiver(x, y, vx, vy, angles="xy", scale_units="xy", scale=1)
+                    ax.set_xlabel("X (m)")
+                    ax.set_ylabel("Y (m)")
+                    ax.set_aspect("equal")
+                    ax.legend()
+                mp.update()
 
             n = len(result.timestamps_us)
             duration_s = result.timestamps_us[-1] / 1e6
-            status_label.set_text(
-                f"Loaded {e.name}: {n} samples, {duration_s:.1f}s"
-            )
+            status_label.set_text(f"Loaded {e.name}: {n} samples, {duration_s:.1f}s")
         except Exception as exc:
             status_label.set_text(f"Error: {exc}")
         finally:
@@ -68,7 +70,7 @@ def index() -> None:
 
     with ui.card().classes("w-full"):
         ui.label("Upload .wpilog file").classes("text-lg font-semibold mb-2")
-        upload = ui.upload(
+        ui.upload(
             label="Select .wpilog file",
             auto_upload=True,
             multiple=False,
