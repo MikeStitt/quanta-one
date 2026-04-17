@@ -5,7 +5,6 @@ import argparse
 import pathlib
 import tempfile
 
-import numpy as np
 import matplotlib.pyplot as plt
 from nicegui import ui, events
 
@@ -49,15 +48,8 @@ def index() -> None:
                 with mp.figure as fig:
                     ax = fig.gca()
                     if x:
-                        arr_vx = np.asarray(vx, dtype=float)
-                        arr_vy = np.asarray(vy, dtype=float)
-                        mag = np.hypot(arr_vx, arr_vy)
-                        safe = np.where(mag > 0, mag, 1.0)
-                        ax.quiver(x, y, arr_vx / safe, arr_vy / safe,
-                                  color="green",
-                                  angles="xy", units="dots",
-                                  scale=1 / 6, width=1.5, headwidth=4, headlength=5,
-                                  zorder=2)
+                        ax.quiver(x, y, vx, vy, color="green",
+                                  angles="xy", scale_units="xy", scale=1, zorder=2)
                     ax.plot(x, y, "o", markersize=3, label="path", zorder=3)
                     ax.set_xlabel("X (m)")
                     ax.set_ylabel("Y (m)")
