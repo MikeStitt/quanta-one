@@ -19,7 +19,9 @@ class CartesianTrajectoryPlot(Plot):
         if x:
             # draw in data coordinates so each arrow spans the displacement to the next point
             ax.quiver(x, y, vx, vy, color="green",
-                      angles="xy", scale_units="xy", scale=1, zorder=2)
+                      angles="xy", scale_units="xy", scale=1,
+                      units="dots", width=1.5, headwidth=9, headlength=12,
+                      zorder=2)
         ax.plot(x, y, "o", markersize=3, label="path", zorder=3)
         ax.set_xlabel("X (m)")
         ax.set_ylabel("Y (m)")
