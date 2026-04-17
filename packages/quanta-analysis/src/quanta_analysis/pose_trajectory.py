@@ -27,9 +27,17 @@ class PoseTrajectoryAnalyzer(Analyzer):
         if not sig.values:
             return AnalysisResult()
 
-        timestamps = sig.timestamps_us
-        x = [pose.translation().X() for pose in sig.values]
-        y = [pose.translation().Y() for pose in sig.values]
+        raw_ts = sig.timestamps_us
+        raw_x = [pose.translation().X() for pose in sig.values]
+        raw_y = [pose.translation().Y() for pose in sig.values]
+
+        # Drop exact-origin frames — (0.0, 0.0) means the pose estimator hasn't
+        # converged yet and produces a spurious multi-meter jump on the first real fix.
+        valid = [(t, px, py) for t, px, py in zip(raw_ts, raw_x, raw_y)
+                 if not (px == 0.0 and py == 0.0)]
+        if not valid:
+            return AnalysisResult()
+        timestamps, x, y = map(list, zip(*valid))
 
         n = len(x)
         vx = [x[i + 1] - x[i] for i in range(n - 1)] + [0.0]

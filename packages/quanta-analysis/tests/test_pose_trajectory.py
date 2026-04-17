@@ -36,6 +36,14 @@ def _make_log_map(xy_pairs: list[tuple[float, float]], timestamps: list[int] | N
     return LogSignalMap({"Robot/Pose": signal})
 
 
+def test_origin_frames_filtered_out():
+    # Leading (0, 0) frame should be dropped so it doesn't produce a spurious jump arrow
+    log_map = _make_log_map([(0.0, 0.0), (1.0, 2.0), (3.0, 4.0)], timestamps=[0, 1000, 2000])
+    result = PoseTrajectoryAnalyzer("Robot/Pose").process_signals(log_map)
+    assert result.signals["x"][0] == pytest.approx(1.0), "origin frame should be filtered"
+    assert len(result.timestamps_us) == 2
+
+
 def test_empty_map_returns_empty_result():
     analyzer = PoseTrajectoryAnalyzer("Robot/Pose")
     result = analyzer.process_signals(LogSignalMap({}))
@@ -50,14 +58,14 @@ def test_xy_extracted_correctly():
 
 
 def test_velocity_vectors_point_to_next():
-    log_map = _make_log_map([(0.0, 0.0), (1.0, 2.0), (3.0, 5.0)], timestamps=[0, 1, 2])
+    log_map = _make_log_map([(1.0, 0.0), (2.0, 2.0), (4.0, 5.0)], timestamps=[0, 1, 2])
     result = PoseTrajectoryAnalyzer("Robot/Pose").process_signals(log_map)
-    assert result.signals["vx"][0] == pytest.approx(1.0 - 0.0)
+    assert result.signals["vx"][0] == pytest.approx(2.0 - 1.0)
     assert result.signals["vy"][0] == pytest.approx(2.0 - 0.0)
 
 
 def test_last_point_velocity_is_zero():
-    log_map = _make_log_map([(0.0, 0.0), (1.0, 1.0), (2.0, 2.0)], timestamps=[0, 1, 2])
+    log_map = _make_log_map([(1.0, 1.0), (2.0, 2.0), (3.0, 3.0)], timestamps=[0, 1, 2])
     result = PoseTrajectoryAnalyzer("Robot/Pose").process_signals(log_map)
     assert result.signals["vx"][-1] == pytest.approx(0.0)
     assert result.signals["vy"][-1] == pytest.approx(0.0)
@@ -65,6 +73,6 @@ def test_last_point_velocity_is_zero():
 
 def test_timestamps_preserved():
     timestamps = [1000, 2000, 3000]
-    log_map = _make_log_map([(0.0, 0.0), (1.0, 0.0), (2.0, 0.0)], timestamps=timestamps)
+    log_map = _make_log_map([(1.0, 0.0), (2.0, 0.0), (3.0, 0.0)], timestamps=timestamps)
     result = PoseTrajectoryAnalyzer("Robot/Pose").process_signals(log_map)
     assert result.timestamps_us == timestamps
