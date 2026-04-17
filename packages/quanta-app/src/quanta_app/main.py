@@ -5,6 +5,9 @@ import argparse
 import pathlib
 import tempfile
 
+import base64
+import io
+
 import matplotlib.pyplot as plt
 from nicegui import ui, events
 
@@ -44,9 +47,12 @@ def index() -> None:
             plot = VarianceTimeSeriesPlot()
             fig = plot.render(result)
 
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png", bbox_inches="tight")
+            buf.seek(0)
+            img_b64 = base64.b64encode(buf.read()).decode()
             with chart_container:
-                with ui.matplotlib(fig).classes("w-full"):
-                    pass
+                ui.image(src=f"data:image/png;base64,{img_b64}").classes("w-full")
 
             n = len(result.timestamps_us)
             duration_s = result.timestamps_us[-1] / 1e6
