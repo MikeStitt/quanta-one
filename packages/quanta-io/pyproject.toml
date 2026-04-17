@@ -6,9 +6,10 @@ build-backend = "hatchling.build"
 name = "quanta-io"
 version = "0.1.0"
 description = "Data source adapters for quanta-one (wpilog files, live NT4)"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
     "pykit-core",
+    "robotpy-wpimath>=2026.1.1",
 ]
 
 [project.optional-dependencies]

@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from pykit.logtable import LogTable
+
+if TYPE_CHECKING:
+    from quanta_io.signal import LogSignalMap
 
 
 @dataclass
@@ -41,3 +44,6 @@ class Analyzer(ABC):
         :return: AnalysisResult with timestamps and named signal arrays.
         """
         ...
+
+    def process_signals(self, log_map: "LogSignalMap") -> AnalysisResult:
+        raise NotImplementedError(f"{type(self).__name__} does not implement process_signals()")

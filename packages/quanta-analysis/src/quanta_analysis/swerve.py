@@ -1,10 +1,13 @@
-from typing import Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 import numpy as np
 
 from pykit.logtable import LogTable
 
 from quanta_analysis.analyzer import Analyzer, AnalysisResult
+
+if TYPE_CHECKING:
+    from quanta_io.signal import LogSignalMap
 
 
 class SwerveOdometryVarianceAnalyzer(Analyzer):
@@ -68,6 +71,44 @@ class SwerveOdometryVarianceAnalyzer(Analyzer):
                 "odom_y_var": odom_y_var[i],
             }
             if has_vision:
+                kwargs["vision_x_var"] = vision_x_var[i]
+                kwargs["vision_y_var"] = vision_y_var[i]
+            result.add_sample(ts, **kwargs)
+
+        return result
+
+    def process_signals(self, log_map: "LogSignalMap") -> AnalysisResult:
+        if self._odom_x_key not in log_map or self._odom_y_key not in log_map:
+            return AnalysisResult()
+
+        odom_x_sig = log_map[self._odom_x_key]
+        odom_y_sig = log_map[self._odom_y_key]
+
+        timestamps = odom_x_sig.timestamps_us
+        odom_x = [float(v) for v in odom_x_sig.values]
+        odom_y = [float(v) for v in odom_y_sig.values]
+
+        if not timestamps:
+            return AnalysisResult()
+
+        has_vision = self._vision_x_key is not None and self._vision_y_key is not None
+
+        odom_x_var = self._rolling_var(odom_x)
+        odom_y_var = self._rolling_var(odom_y)
+
+        vision_x_var = None
+        vision_y_var = None
+        if has_vision and self._vision_x_key in log_map and self._vision_y_key in log_map:
+            vision_x_var = self._rolling_var([float(v) for v in log_map[self._vision_x_key].values])
+            vision_y_var = self._rolling_var([float(v) for v in log_map[self._vision_y_key].values])
+
+        result = AnalysisResult()
+        for i, ts in enumerate(timestamps):
+            kwargs: dict = {
+                "odom_x_var": odom_x_var[i],
+                "odom_y_var": odom_y_var[i],
+            }
+            if vision_x_var is not None:
                 kwargs["vision_x_var"] = vision_x_var[i]
                 kwargs["vision_y_var"] = vision_y_var[i]
             result.add_sample(ts, **kwargs)

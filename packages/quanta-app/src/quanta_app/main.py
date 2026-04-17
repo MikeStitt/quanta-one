@@ -1,13 +1,14 @@
 """quanta-one NiceGUI web app entry point."""
 from __future__ import annotations
 
-import tempfile
+import argparse
 import pathlib
+import tempfile
 
 import matplotlib.pyplot as plt
 from nicegui import ui, events
 
-from quanta_io.log_source import WPILogFileSource
+from quanta_io.log_source import WPILogFileSource, read_wpilog_signals
 from quanta_analysis.swerve import SwerveOdometryVarianceAnalyzer
 from quanta_plot.variance import VarianceTimeSeriesPlot
 
@@ -78,5 +79,29 @@ def run() -> None:
     ui.run(title="quanta-one", port=8080)
 
 
-if __name__ in {"__main__", "__mp_main__"}:
+def run_headless(config) -> None:
+    from quanta_app.config import _build_analyzer, _build_plot
+    log_map = read_wpilog_signals(config.source.file)
+    result = _build_analyzer(config).process_signals(log_map)
+    fig = _build_plot(config).render(result)
+    pathlib.Path(config.output.save_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(config.output.save_path)
+    plt.close("all")
+    print(f"Saved: {config.output.save_path}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default=None)
+    args, _ = parser.parse_known_args()
+    if args.config:
+        from quanta_app.config import load_config
+        config = load_config(args.config)
+        if config.output.headless:
+            run_headless(config)
+            return
     run()
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    main()

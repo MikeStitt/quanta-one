@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "quanta-app"
 version = "0.1.0"
 description = "quanta-one CLI: FRC robot data analysis and plotting"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
     "quanta-io",
     "quanta-analysis",
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-quanta = "quanta_app.main:run"
+quanta = "quanta_app.main:main"
 
 [tool.uv.sources]
 quanta-io = { workspace = true }

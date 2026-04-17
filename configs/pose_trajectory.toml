@@ -1,0 +1,10 @@
+[source]
+file = "backgroundInfo/pyLogs/test_log_and_replay_step2.wpilog"
+
+[analysis]
+type = "pose_trajectory"
+pose_key = "RealOutputs/Robot/dt/Pose/estPose"
+
+[output]
+headless = true
+save_path = "output/trajectory.png"
