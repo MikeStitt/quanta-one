@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pykit-core"
+version = "0.1.0"
+description = "HAL-free PyKit core: LogTable, LogValue, WPILOGReader for offline FRC log analysis"
+requires-python = ">=3.10"
+dependencies = [
+    "robotpy-wpiutil>=2026.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pykit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]

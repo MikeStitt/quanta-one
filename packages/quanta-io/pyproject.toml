@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quanta-io"
+version = "0.1.0"
+description = "Data source adapters for quanta-one (wpilog files, live NT4)"
+requires-python = ">=3.10"
+dependencies = [
+    "pykit-core",
+]
+
+[project.optional-dependencies]
+networktables = [
+    "pyntcore>=2026.1.1",
+]
+
+[tool.uv.sources]
+pykit-core = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quanta_io"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
