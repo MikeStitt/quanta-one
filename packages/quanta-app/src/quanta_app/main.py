@@ -58,7 +58,7 @@ def index() -> None:
                                   angles="xy", units="dots",
                                   scale=1 / 6, width=1.5, headwidth=4, headlength=5,
                                   zorder=2)
-                    ax.plot(x, y, "-o", markersize=3, label="path", zorder=3)
+                    ax.plot(x, y, "o", markersize=3, label="path", zorder=3)
                     ax.set_xlabel("X (m)")
                     ax.set_ylabel("Y (m)")
                     ax.set_aspect("equal")

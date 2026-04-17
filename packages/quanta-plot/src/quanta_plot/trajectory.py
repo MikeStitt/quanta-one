@@ -32,7 +32,7 @@ class CartesianTrajectoryPlot(Plot):
         fig, ax = plt.subplots()
         if x:
             _quiver_normalized(ax, x, y, vx, vy)
-        ax.plot(x, y, "-o", markersize=3, label="path", zorder=3)
+        ax.plot(x, y, "o", markersize=3, label="path", zorder=3)
         ax.set_xlabel("X (m)")
         ax.set_ylabel("Y (m)")
         ax.set_aspect("equal")
